@@ -195,7 +195,7 @@ export async function getTransaction(signer: Signer, id: string): Promise<Anchor
   }
 }
 
-/** Poll until the anchor reports a terminal status. */
+/** Poll until the anchor reports a terminal status. Tolerates transient network errors. */
 export async function waitForStatus(
   signer: Signer,
   id: string,
@@ -204,10 +204,17 @@ export async function waitForStatus(
 ): Promise<AnchorTx> {
   const interval = opts.intervalMs ?? 2500
   const deadline = Date.now() + (opts.timeoutMs ?? 300_000)
+  let failures = 0
   for (;;) {
-    const tx = await getTransaction(signer, id)
-    onUpdate(tx)
-    if (tx.status === 'completed' || tx.status === 'error' || tx.status === 'refunded') return tx
+    try {
+      const tx = await getTransaction(signer, id)
+      failures = 0
+      onUpdate(tx)
+      if (tx.status === 'completed' || tx.status === 'error' || tx.status === 'refunded') return tx
+    } catch (e) {
+      failures += 1
+      if (failures >= 8) throw e
+    }
     if (Date.now() > deadline) throw new Error('Anchor took too long; check the transaction later')
     await new Promise((r) => setTimeout(r, interval))
   }
