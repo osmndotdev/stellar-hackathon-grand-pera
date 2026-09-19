@@ -188,7 +188,16 @@ export function RefundCard({ view, onChanged }: { view: PoolView; onChanged: () 
       </Card>
     )
   }
-  if (!mine) return null
+  if (!mine) {
+    return (
+      <Card className="p-4">
+        <h3 className="font-display text-[16px] font-bold">Didn't make it</h3>
+        <p className="mt-1 text-[14px] text-ink-2">
+          The deadline passed below the goal. Everyone who chipped in can take their money back.
+        </p>
+      </Card>
+    )
+  }
   return (
     <Card className="p-4">
       <h3 className="font-display text-[16px] font-bold">Didn't make it</h3>

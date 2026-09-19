@@ -4,5 +4,6 @@
   "scripts": {
     "build": "pnpm --filter plink-frontend build && pnpm --filter plink-server build",
     "start": "pnpm --filter plink-server start"
-  }
+  },
+  "packageManager": "pnpm@8.15.6"
 }

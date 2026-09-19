@@ -9,7 +9,7 @@
  * re-runs reuse them). Their USDC comes through the anchor's TRY deposit,
  * exactly like a user would get it.
  *
- * Usage: pnpm tsx scripts/seed.mts [--creator-secret S...] [--admin-secret S...]
+ * Usage: pnpm tsx scripts/seed.mts [--creator-secret S...] [--admin-secret S...] [--treasury-secret S...]
  */
 import { Keypair } from '@stellar/stellar-sdk'
 import { execSync } from 'node:child_process'
@@ -18,7 +18,7 @@ import * as anchor from '../src/lib/anchor'
 import { CONTRACT_ID } from '../src/lib/config'
 import { fromUsdc } from '../src/lib/money'
 import { keypairSigner, type Signer } from '../src/lib/signer-keypair'
-import { getBalances, prepareAccount, writeClient } from '../src/lib/stellar'
+import { getBalances, payUsdc, prepareAccount, writeClient } from '../src/lib/stellar'
 
 const STATE = new URL('./.seed-state.json', import.meta.url)
 type State = { personas: Record<string, string>; pools?: Record<string, number> }
@@ -44,11 +44,27 @@ function persona(name: string): Signer {
   return keypairSigner(Keypair.fromSecret(state.personas[name]))
 }
 
+/**
+ * Optional treasury: an account already holding USDC (e.g. after a claim, or
+ * `just fund plink-deployer 200`). When it can cover a persona, we pay from it
+ * directly instead of waiting on the anchor's payout queue.
+ */
+const treasurySecret = arg('--treasury-secret') ?? process.env.PLINK_TREASURY_SECRET
+const treasury = treasurySecret ? keypairSigner(Keypair.fromSecret(treasurySecret)) : null
+
 async function ensureUsdc(s: Signer, usd: number) {
   await prepareAccount(s)
   const b = await getBalances(s.address)
   if (b.usdc >= usd) return
   const need = usd - b.usdc
+  if (treasury) {
+    const t = await getBalances(treasury.address)
+    if (t.usdc >= need) {
+      log(`  ${s.address.slice(0, 5)}… receiving ${need} USDC from treasury`)
+      await payUsdc(treasury, s.address, need.toFixed(7))
+      return
+    }
+  }
   const p = await anchor.priceTryToUsdc(1000)
   const tr = Math.ceil(need * p.tryPerUsdc * 100 + 1) / 100
   log(`  ${s.address.slice(0, 5)}… depositing ₺${tr} via anchor for ${need} USDC`)

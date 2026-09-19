@@ -1,6 +1,6 @@
 # ---- build ----
 FROM node:24-alpine AS build
-RUN corepack enable && corepack prepare pnpm@10 --activate
+RUN corepack enable
 WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY frontend/package.json frontend/
@@ -15,7 +15,7 @@ RUN pnpm --filter plink-frontend build && pnpm --filter plink-server build
 
 # ---- run ----
 FROM node:24-alpine
-RUN corepack enable && corepack prepare pnpm@10 --activate
+RUN corepack enable
 WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./

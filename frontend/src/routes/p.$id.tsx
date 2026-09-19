@@ -63,7 +63,6 @@ function PoolPage() {
   const { pool, contributions, status } = view
   const isCreator = pool.creator === signer.address
   const progress = pct(pool.raised, pool.target)
-  const mine = contributions.find((c) => c.contributor === signer.address)
 
   return (
     <div style={vibeStyle(pool.vibe)} className="space-y-4 pt-1">
@@ -90,8 +89,8 @@ function PoolPage() {
               <CountUp value={toUsdc(pool.raised)} />
             </div>
             <div className="mt-1 text-[14px] text-muted">
-              of {fmtBase(pool.target)} · {pool.contributor_count}{' '}
-              {pool.contributor_count === 1 ? 'person' : 'people'}
+              of {fmtBase(pool.target)} · {contributions.length}{' '}
+              {contributions.length === 1 ? 'person' : 'people'}
             </div>
           </div>
           <div className="font-display text-[20px] font-bold tabular">{Math.floor(progress)}%</div>
@@ -127,21 +126,13 @@ function PoolPage() {
       {(status === 'funded' || status === 'claimed') && isCreator && (
         <ClaimCard view={view} onChanged={reload} />
       )}
-      {status === 'expired' && mine && <RefundCard view={view} onChanged={reload} />}
-      {status === 'expired' && !mine && (
-        <Card className="p-4">
-          <h3 className="font-display text-[16px] font-bold">Didn't make it</h3>
-          <p className="mt-1 text-[14px] text-ink-2">
-            The deadline passed below the goal. Everyone who chipped in can take their money back.
-          </p>
-        </Card>
-      )}
+      {status === 'expired' && <RefundCard view={view} onChanged={reload} />}
 
       {isCreator && !fresh && status !== 'claimed' && <ShareCard pool={pool} />}
 
       <section>
         <h2 className="font-display mb-2 px-1 text-[14px] font-bold text-ink-2">
-          {contributions.length === 0 ? 'Be the first to chip in' : 'Who chipped in'}
+          {contributions.length === 0 && status === 'open' ? 'Be the first to chip in' : 'Who chipped in'}
         </h2>
         <Card className="divide-y divide-line">
           <AnimatePresence initial={false}>
@@ -168,7 +159,9 @@ function PoolPage() {
             ))}
           </AnimatePresence>
           {contributions.length === 0 && (
-            <div className="px-4 py-6 text-center text-[14px] text-muted">Nobody yet. Go on.</div>
+            <div className="px-4 py-6 text-center text-[14px] text-muted">
+              {status === 'open' ? 'Nobody yet. Go on.' : 'Everyone has taken their money back.'}
+            </div>
           )}
         </Card>
       </section>
