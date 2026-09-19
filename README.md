@@ -110,10 +110,17 @@ classic USDC payments land in the same balance the contract moves.
    bank transfer card, clearly labelled *simulated bank*.
 6. "I sent the transfer" calls the sandbox's `simulate-bank-transfer` (in real
    life the user pays from their banking app and this step is the bank).
-7. Plink polls SEP-6 `/transaction` until `completed`; real testnet USDC lands
-   in the contributor's account.
+7. The deposit is now a **pending contribution**, saved in the browser. Plink
+   polls SEP-6 `/transaction` until `completed`; real testnet USDC lands in the
+   contributor's account. The sheet can be closed; the pool page keeps
+   finishing it, even after a reload. Real bank transfers take time, and so
+   does the sandbox sometimes.
 8. Plink invokes `contribute` on the contract. The progress bar moves for
    everyone watching the link.
+
+The anchor accepts at most ₺3000 per transfer, so the sheet caps a single bank
+contribution at that (about $60) and suggests splitting or paying the rest in
+USDC.
 
 **Crypto (USDC)**: the instant account or a connected wallet (Stellar Wallets
 Kit) signs `contribute` directly. Both routes fund the same pool.
@@ -176,7 +183,9 @@ accounts and prints their links:
 
 Pass `--creator-secret S…` (your browser's instant account secret, visible in
 the demo panel) to make *you* the organizer of the seeded pools, so the claim
-happens in your own browser.
+happens in your own browser. Pass `--treasury-secret S…` (any account holding
+USDC, e.g. after a claim or `just fund plink-deployer 200`) to fund the
+personas directly instead of waiting on the anchor's payout queue.
 
 Run of show (2–3 minutes):
 
@@ -192,11 +201,16 @@ Run of show (2–3 minutes):
 4. **Refund.** Open the expired trip link as Zeynep (demo panel → paste her
    secret from `frontend/scripts/.seed-state.json`) and take the $40 back.
 
-Demo panel at `/demo`: current account + balances, "Get $N USDC via anchor"
-(runs the deposit flow), switch to any testnet secret, list of all pools.
+Demo panel at `/demo`: current account + balances, "Get $N via anchor" (runs
+the deposit flow), an instant top-up from the server's demo treasury when
+`DEMO_TREASURY_SECRET` is configured, switch to any testnet secret, list of all
+pools.
 
-Timing note: the mock anchor sometimes takes 30–100 s to pay out USDC after the
-simulated transfer. The sheet shows the anchor's live status while waiting.
+Timing note: the mock anchor usually pays out USDC within seconds, sometimes
+takes a minute or two, and under load its payout queue has stalled for longer.
+Pending bank contributions survive that: close the sheet, keep presenting, the
+bar moves when the money lands. Check the anchor before going on stage:
+`just persona ayse` prints her anchor transactions and balances.
 
 ## Design
 

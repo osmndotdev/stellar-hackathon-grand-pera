@@ -21,6 +21,8 @@ export function ClaimCard({ view, onChanged }: { view: PoolView; onChanged: () =
   const [log, setLog] = useState<Line[]>([])
   const [cashout, setCashout] = useState<{ tr: number; iban?: string; tx?: string } | null>(null)
   const [quote, setQuote] = useState<{ tryOut: number } | null>(null)
+  /** Set once the USDC left the organizer's account: payout initiated, not completed. */
+  const [paidTx, setPaidTx] = useState<string | null>(null)
 
   const claimed = view.pool.claimed
   const amount = view.pool.raised
@@ -61,9 +63,15 @@ export function ClaimCard({ view, onChanged }: { view: PoolView; onChanged: () =
       push('pay', `Sending ${fmtUsd(usdc, { maximumFractionDigits: 2 })} USDC to the anchor`, `memo ${order.memo}`)
       const hash = await payUsdc(signer, order.accountId, usdc.toFixed(7), order.memo)
       push('wait', 'Anchor paying out ₺ by FAST', 'simulated')
-      const done = await anchor.waitForStatus(signer, order.id, (t) => {
-        setLog((l) => l.map((x) => (x.key === 'wait' ? { ...x, sub: t.status.replaceAll('_', ' ') } : x)))
-      })
+      setPaidTx(hash)
+      const done = await anchor.waitForStatus(
+        signer,
+        order.id,
+        (t) => {
+          setLog((l) => l.map((x) => (x.key === 'wait' ? { ...x, sub: t.status.replaceAll('_', ' ') } : x)))
+        },
+        { timeoutMs: 10 * 60_000 },
+      )
       if (done.status !== 'completed') throw new Error(done.message ?? `Anchor status: ${done.status}`)
       finish()
       setCashout({ tr: Number(done.amountOut ?? 0), iban, tx: hash })
@@ -146,7 +154,21 @@ export function ClaimCard({ view, onChanged }: { view: PoolView; onChanged: () =
           )}
         </motion.div>
       )}
-      {err && <p className="mt-2 text-[13px] text-[#D33]">{err}</p>}
+      {err && (
+        <p className="mt-2 text-[13px] text-[#D33]">
+          {err}
+          {paidTx && !cashout && (
+            <>
+              {' '}
+              The USDC payment to the anchor went through (
+              <a className="underline" href={explorerTx(paidTx)} target="_blank" rel="noreferrer">
+                view
+              </a>
+              ); the ₺ payout is initiated but not yet confirmed by the anchor.
+            </>
+          )}
+        </p>
+      )}
     </Card>
   )
 }
