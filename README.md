@@ -192,7 +192,7 @@ accounts and prints their links:
 - **Class trip to Ankara**: $500 goal, $40 in, deadline already passed →
   refund demo.
 
-Pass `--creator-secret S…` (your browser's instant account secret, visible in
+Pass `--creator-secret S…` (your browser's instant account secret, revealed in
 the demo panel) to make *you* the organizer of the seeded pools, so the claim
 happens in your own browser. Pass `--treasury-secret S…` (any account holding
 USDC, e.g. after a claim or `just fund plink-deployer 200`) to fund the
@@ -211,6 +211,9 @@ Run of show (2–3 minutes):
    optionally cashes out to IBAN through the anchor.
 4. **Refund.** Open the expired trip link as Zeynep (demo panel → paste her
    secret from `frontend/scripts/.seed-state.json`) and take the $40 back.
+
+If the anchor is slow, `just expire <poolId> zeynep` stages the refund pool
+from USDC a persona already holds, without any anchor deposit.
 
 Demo panel at `/demo`: current account + balances, "Get $N via anchor" (runs
 the deposit flow), an instant top-up from the server's demo treasury when

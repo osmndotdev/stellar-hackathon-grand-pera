@@ -9,6 +9,7 @@ import { CONTRACT_ID, explorerContract } from '@/lib/config'
 import { faucetInfo, faucetPay, type FaucetInfo } from '@/lib/faucet'
 import { fmtBase, fmtUsd } from '@/lib/money'
 import { fetchPools, statusOf } from '@/lib/pool'
+import { getInstantKeypair } from '@/lib/wallet'
 
 export const Route = createFileRoute('/demo')({
   component: DemoPage,
@@ -24,6 +25,7 @@ function DemoPage() {
   const { signer, balances, refresh, ensureReady, resetInstant, importSecret } = useWallet()
   const [secret, setSecret] = useState('')
   const [importErr, setImportErr] = useState<string | null>(null)
+  const [reveal, setReveal] = useState(false)
   const [pools, setPools] = useState<Pool[] | null>(null)
   const [topup, setTopup] = useState('60')
   const [log, setLog] = useState<Line[]>([])
@@ -112,6 +114,17 @@ function DemoPage() {
           <Pill tone={signer.kind === 'kit' ? 'ink' : 'accent'}>{signer.kind}</Pill>
         </div>
         <div className="font-mono text-[12px] break-all text-ink-2">{signer.address}</div>
+        {signer.kind === 'instant' && (
+          <div className="text-[12px] text-muted">
+            {reveal ? (
+              <span className="font-mono break-all text-ink-2">{getInstantKeypair().secret()}</span>
+            ) : (
+              <button className="underline" onClick={() => setReveal(true)}>
+                Reveal secret (for <code>just seed --creator-secret</code>)
+              </button>
+            )}
+          </div>
+        )}
         <div className="flex gap-4 text-[14px]">
           <span>
             USDC <b className="tabular">{balances ? fmtUsd(balances.usdc, { maximumFractionDigits: 2 }) : '—'}</b>

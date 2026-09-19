@@ -77,3 +77,7 @@ logs:
 # Fund an account with test USDC through the anchor in ≤₺3000 chunks, e.g. `just fund plink-deployer 200`
 fund who="plink-deployer" usd="60":
     cd frontend && pnpm tsx scripts/fund.mts {{who}} {{usd}}
+
+# Stage a refund demo without the anchor: `just expire 6 zeynep` contributes Zeynep's USDC to pool 6 and expires it
+expire id who="" usd="":
+    cd frontend && pnpm tsx scripts/expire.mts {{id}} {{who}} {{usd}}

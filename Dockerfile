@@ -16,13 +16,13 @@ RUN pnpm --filter plink-frontend build && pnpm --filter plink-server build
 
 # ---- run ----
 FROM node:24-alpine
-RUN corepack enable
 WORKDIR /app
 ENV NODE_ENV=production
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY frontend/package.json frontend/
+COPY package.json pnpm-workspace.yaml ./
 COPY server/package.json server/
-RUN pnpm install --frozen-lockfile --prod --filter plink-server
+# Reuse the build stage's install (pnpm symlinks resolve because paths match).
+COPY --from=build /app/node_modules node_modules
+COPY --from=build /app/server/node_modules server/node_modules
 COPY deployments deployments
 COPY --from=build /app/frontend/dist frontend/dist
 COPY --from=build /app/server/dist server/dist
