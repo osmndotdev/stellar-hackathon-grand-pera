@@ -18,6 +18,7 @@ export function usePool(id: number, intervalMs = 3000) {
         prevStatus.current = v.status
       }
     } catch (e) {
+      console.error('fetchPool failed', e)
       setError((e as Error).message)
     }
   }, [id])
@@ -25,9 +26,12 @@ export function usePool(id: number, intervalMs = 3000) {
   useEffect(() => {
     let alive = true
     let timer: ReturnType<typeof setTimeout> | null = null
+    let first = true
     const tick = async () => {
       if (!alive) return
-      if (document.visibilityState === 'visible') await load()
+      // Always load once; afterwards only poll while the tab is visible.
+      if (first || document.visibilityState === 'visible') await load()
+      first = false
       timer = setTimeout(tick, intervalMs)
     }
     tick()

@@ -4,7 +4,7 @@ import { forwardRef } from 'react'
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 export { cx }
 
-type Variant = 'ink' | 'accent' | 'ghost' | 'soft' | 'danger'
+type Variant = 'ink' | 'accent' | 'ghost' | 'soft' | 'danger' | 'onInk'
 type Size = 'md' | 'lg' | 'sm'
 
 const variantCls: Record<Variant, string> = {
@@ -13,6 +13,7 @@ const variantCls: Record<Variant, string> = {
   ghost: 'bg-transparent text-ink hover:bg-black/5 border border-line-2 disabled:text-muted',
   soft: 'bg-black/5 text-ink hover:bg-black/10 disabled:text-muted',
   danger: 'bg-[#FF3D3D] text-white hover:brightness-95 disabled:bg-line-2',
+  onInk: 'bg-white/10 text-white hover:bg-white/20 disabled:text-white/40',
 }
 const sizeCls: Record<Size, string> = {
   sm: 'h-9 px-4 text-[13px]',
@@ -66,9 +67,20 @@ export function Spinner({ className }: { className?: string }) {
   )
 }
 
-export function Card({ className, children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
+export function Card({
+  className,
+  tone = 'white',
+  children,
+  ...rest
+}: React.HTMLAttributes<HTMLDivElement> & { tone?: 'white' | 'ink' | 'soft' | 'accent' }) {
+  const t = {
+    white: 'bg-surface shadow-card',
+    ink: 'bg-ink text-white',
+    soft: 'bg-black/[0.04]',
+    accent: 'bg-accent-soft',
+  }[tone]
   return (
-    <div className={cx('rounded-card bg-surface shadow-card', className)} {...rest}>
+    <div className={cx('rounded-card', t, className)} {...rest}>
       {children}
     </div>
   )

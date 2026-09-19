@@ -39,8 +39,9 @@ function PoolPage() {
 
   if (view === undefined) {
     return (
-      <div className="flex h-60 items-center justify-center text-muted">
+      <div className="flex h-60 flex-col items-center justify-center gap-3 text-muted">
         <Spinner />
+        {error && <p className="px-4 text-center text-[12px]">{error}</p>}
       </div>
     )
   }

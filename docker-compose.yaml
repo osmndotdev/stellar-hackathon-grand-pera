@@ -1,0 +1,21 @@
+name: plink
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        VITE_PUBLIC_URL: ${PUBLIC_URL:-http://localhost:10013}
+    image: plink-web
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:10013}
+      FRONTEND_DIST: /app/frontend/dist
+    ports:
+      - "${PLINK_PORT:-10013}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

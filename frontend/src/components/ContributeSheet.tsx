@@ -7,7 +7,7 @@ import { fmtTry, fmtUsd, fromUsdc } from '@/lib/money'
 import type { PoolView } from '@/lib/pool'
 import { getBalances, writeClient } from '@/lib/stellar'
 import { getSavedName, saveName } from '@/lib/wallet'
-import { friendlyError } from '@/routes/index'
+import { friendlyError } from '@/lib/errors'
 import { Sheet } from './Sheet'
 import { Button, Pill, cx, inputCls } from './ui'
 

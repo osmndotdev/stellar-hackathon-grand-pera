@@ -6,7 +6,7 @@ import { explorerTx } from '@/lib/config'
 import { fmtBase, fmtTry, fmtUsd, toUsdc } from '@/lib/money'
 import type { PoolView } from '@/lib/pool'
 import { payUsdc, writeClient } from '@/lib/stellar'
-import { friendlyError } from '@/routes/index'
+import { friendlyError } from '@/lib/errors'
 import { StepLog } from './ContributeSheet'
 import { Button, Card, Pill } from './ui'
 
@@ -177,7 +177,7 @@ export function RefundCard({ view, onChanged }: { view: PoolView; onChanged: () 
 
   if (tx) {
     return (
-      <Card className="bg-accent-soft p-4">
+      <Card tone="accent" className="p-4">
         <h3 className="font-display text-[16px] font-bold">Money's back</h3>
         <p className="mt-1 text-[14px] text-ink-2">
           Your USDC returned to your account.{' '}

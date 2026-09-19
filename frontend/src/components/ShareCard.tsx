@@ -37,7 +37,7 @@ export function ShareCard({ pool, fresh }: { pool: Pool; fresh?: boolean }) {
 
   return (
     <motion.div initial={fresh ? { scale: 0.96, opacity: 0 } : false} animate={{ scale: 1, opacity: 1 }}>
-      <Card className="bg-ink p-4 text-white">
+      <Card tone="ink" className="p-4">
         {fresh && <div className="font-display mb-1 text-[13px] font-bold text-accent">Your link is live</div>}
         <div className="flex items-center gap-2">
           <div className="flex h-11 flex-1 items-center overflow-hidden rounded-2xl bg-white/10 px-3 font-mono text-[13px] whitespace-nowrap">
@@ -48,7 +48,7 @@ export function ShareCard({ pool, fresh }: { pool: Pool; fresh?: boolean }) {
           </Button>
         </div>
         <div className="mt-2 flex gap-2">
-          <Button full variant="soft" className="bg-white/10 text-white hover:bg-white/20" onClick={share}>
+          <Button full variant="onInk" onClick={share}>
             Share
           </Button>
           <a

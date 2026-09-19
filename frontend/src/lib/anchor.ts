@@ -202,8 +202,8 @@ export async function waitForStatus(
   onUpdate: (tx: AnchorTx) => void,
   opts: { intervalMs?: number; timeoutMs?: number } = {},
 ): Promise<AnchorTx> {
-  const interval = opts.intervalMs ?? 1500
-  const deadline = Date.now() + (opts.timeoutMs ?? 90_000)
+  const interval = opts.intervalMs ?? 2500
+  const deadline = Date.now() + (opts.timeoutMs ?? 300_000)
   for (;;) {
     const tx = await getTransaction(signer, id)
     onUpdate(tx)

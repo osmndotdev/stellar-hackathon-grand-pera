@@ -1,0 +1,8 @@
+{
+  "name": "plink",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter plink-frontend build && pnpm --filter plink-server build",
+    "start": "pnpm --filter plink-server start"
+  }
+}

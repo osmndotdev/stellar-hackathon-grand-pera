@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-@theme {
+@theme inline {
   --font-display: 'Unbounded', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 
