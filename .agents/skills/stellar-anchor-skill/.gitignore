@@ -1,0 +1,6 @@
+.claude/
+.DS_Store
+.idea/
+.vscode/
+*.log
+*.tmp
