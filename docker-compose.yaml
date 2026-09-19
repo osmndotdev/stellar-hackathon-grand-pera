@@ -12,6 +12,8 @@ services:
       PORT: "3000"
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:10013}
       FRONTEND_DIST: /app/frontend/dist
+      # Optional: testnet secret of a USDC-funded account for the demo faucet.
+      DEMO_TREASURY_SECRET: ${DEMO_TREASURY_SECRET:-}
     ports:
       - "${PLINK_PORT:-10013}:3000"
     healthcheck:

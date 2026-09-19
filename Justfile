@@ -73,3 +73,7 @@ down:
 
 logs:
     docker compose logs -f --tail=100
+
+# Fund an account with test USDC through the anchor in ≤₺3000 chunks, e.g. `just fund plink-deployer 200`
+fund who="plink-deployer" usd="60":
+    cd frontend && pnpm tsx scripts/fund.mts {{who}} {{usd}}

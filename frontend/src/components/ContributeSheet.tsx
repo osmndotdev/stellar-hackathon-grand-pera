@@ -3,18 +3,20 @@ import { useEffect, useState } from 'react'
 import { useWallet } from '@/hooks/useWallet'
 import * as anchor from '@/lib/anchor'
 import { explorerTx } from '@/lib/config'
+import { friendlyError } from '@/lib/errors'
 import { fmtTry, fmtUsd, fromUsdc } from '@/lib/money'
+import { addPending, usePending, usePendingStatus } from '@/lib/pending'
 import type { PoolView } from '@/lib/pool'
 import { getBalances, writeClient } from '@/lib/stellar'
 import { getSavedName, saveName } from '@/lib/wallet'
-import { friendlyError } from '@/lib/errors'
+import { PendingDepositCard } from './PendingDeposit'
 import { Sheet } from './Sheet'
-import { Button, Pill, cx, inputCls } from './ui'
+import { Button, cx, inputCls } from './ui'
 
 type Method = 'bank' | 'crypto'
 type Step = 'form' | 'bank' | 'crypto' | 'done'
 
-interface LogLine {
+export interface LogLine {
   key: string
   text: string
   state: 'active' | 'done' | 'error'
@@ -22,6 +24,8 @@ interface LogLine {
 }
 
 const PRESETS = [10, 25, 50, 100]
+/** The TR Mock Anchor caps a single deposit at ₺3000; stay under it. */
+const MAX_BANK_TRY = 3000
 
 export function ContributeSheet({
   open,
@@ -41,28 +45,28 @@ export function ContributeSheet({
   const [method, setMethod] = useState<Method>('bank')
   const [step, setStep] = useState<Step>('form')
   const [log, setLog] = useState<LogLine[]>([])
-  const [bank, setBank] = useState<anchor.DepositOrder | null>(null)
-  const [tryAmount, setTryAmount] = useState<number | null>(null)
+  const [orderId, setOrderId] = useState<string | null>(null)
   const [rate, setRate] = useState<number | null>(null)
   const [txHash, setTxHash] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [usdcBalance, setUsdcBalance] = useState<number | null>(null)
 
-  const usd = Number(amount)
-  const valid = usd > 0 && name.trim().length > 0
+  const pendingHere = usePending(view.pool.id, signer.address)
+  const myOrder = pendingHere.find((p) => p.orderId === orderId) ?? null
+  const orderStatus = usePendingStatus(orderId)
 
-  // Indicative rate for the ₺ hint.
+  const usd = Number(amount)
+  const maxBankUsd = rate ? Math.floor((MAX_BANK_TRY / rate) * 100) / 100 : null
+  const bankTooBig = method === 'bank' && maxBankUsd != null && usd > maxBankUsd
+  const valid = usd > 0 && name.trim().length > 0 && !bankTooBig
+
   useEffect(() => {
     if (!open) return
     anchor
       .priceTryToUsdc(1000)
       .then((p) => setRate(p.tryPerUsdc))
       .catch(() => {})
-  }, [open])
-
-  useEffect(() => {
-    if (!open) return
     getBalances(signer.address)
       .then((b) => setUsdcBalance(b.usdc))
       .catch(() => {})
@@ -71,14 +75,13 @@ export function ContributeSheet({
   const reset = () => {
     setStep('form')
     setLog([])
-    setBank(null)
-    setTryAmount(null)
+    setOrderId(null)
     setTxHash(null)
     setErr(null)
     setBusy(false)
   }
   const close = () => {
-    if (busy && step !== 'done') return
+    if (busy) return
     onClose()
     setTimeout(reset, 300)
   }
@@ -88,69 +91,38 @@ export function ContributeSheet({
   const finishLog = () => setLog((l) => l.map((x) => (x.state === 'active' ? { ...x, state: 'done' } : x)))
   const failLog = () => setLog((l) => l.map((x) => (x.state === 'active' ? { ...x, state: 'error' } : x)))
 
-  const contributeOnChain = async (usdcAmount: number, m: Method) => {
-    push('chain', 'Adding to the pool on Stellar')
-    const client = writeClient(signer)
-    const tx = await client.contribute({
-      id: view.pool.id,
-      from: signer.address,
-      amount: fromUsdc(usdcAmount),
-      name: name.trim(),
-      method: m,
-    })
-    const sent = await tx.signAndSend()
-    const hash = sent.sendTransactionResponse?.hash ?? null
-    setTxHash(hash)
-    finishLog()
-    saveName(name.trim())
-    setStep('done')
-    onContributed()
-    refresh()
-  }
-
+  // ---- bank: create the order, then hand over to the shared resolver.
   const startBank = async () => {
     setBusy(true)
     setErr(null)
     setStep('bank')
     try {
+      saveName(name.trim())
       push('prep', 'Preparing your Stellar account')
       await ensureReady()
       push('auth', 'Logging in to the anchor', 'SEP-10, signed with your key')
       await anchor.authenticate(signer)
       push('quote', 'Locking today’s ₺ rate', 'SEP-38')
       const p = await anchor.priceTryToUsdc(1000)
-      // Add one kuruş so rounding never leaves us short of the USDC amount.
+      // One extra kuruş so rounding never leaves the USDC a hair short.
       const tr = Math.ceil(usd * p.tryPerUsdc * 100 + 1) / 100
-      setTryAmount(tr)
       setRate(p.tryPerUsdc)
       push('order', 'Creating your bank transfer', 'SEP-6 deposit')
       const order = await anchor.startDeposit(signer, tr)
-      setBank(order)
       finishLog()
-    } catch (e) {
-      failLog()
-      setErr(friendlyError(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const simulateBank = async () => {
-    if (!bank || !tryAmount) return
-    setBusy(true)
-    setErr(null)
-    try {
-      push('sim', 'Bank transfer on its way', 'simulated by the sandbox')
-      await anchor.simulateBankTransfer(signer, bank.id, tryAmount)
-      push('wait', 'Anchor converting ₺ to USDC')
-      const done = await anchor.waitForStatus(signer, bank.id, (t) => {
-        setLog((l) => l.map((x) => (x.key === 'wait' ? { ...x, sub: statusLabel(t.status) } : x)))
+      addPending({
+        orderId: order.id,
+        poolId: view.pool.id,
+        address: signer.address,
+        usd,
+        tryAmount: tr,
+        name: name.trim(),
+        iban: order.iban,
+        reference: order.reference,
+        bankName: order.bankName,
+        createdAt: Date.now(),
       })
-      if (done.status !== 'completed') throw new Error(done.message ?? `Anchor status: ${done.status}`)
-      push('landed', 'USDC landed in your account', done.stellarTxId ? 'on Stellar testnet' : undefined)
-      const b = await getBalances(signer.address)
-      const give = Math.min(usd, Math.floor(b.usdc * 1e7) / 1e7)
-      await contributeOnChain(give, 'bank')
+      setOrderId(order.id)
     } catch (e) {
       failLog()
       setErr(friendlyError(e))
@@ -159,11 +131,13 @@ export function ContributeSheet({
     }
   }
 
+  // ---- crypto: straight to the contract.
   const startCrypto = async () => {
     setBusy(true)
     setErr(null)
     setStep('crypto')
     try {
+      saveName(name.trim())
       push('prep', 'Checking your account')
       await ensureReady()
       const b = await getBalances(signer.address)
@@ -173,7 +147,20 @@ export function ContributeSheet({
         setErr(`You have ${fmtUsd(b.usdc, { maximumFractionDigits: 2 })} USDC, but this needs ${fmtUsd(usd)}.`)
         return
       }
-      await contributeOnChain(usd, 'crypto')
+      push('chain', 'Adding to the pool on Stellar')
+      const tx = await writeClient(signer).contribute({
+        id: view.pool.id,
+        from: signer.address,
+        amount: fromUsdc(usd),
+        name: name.trim(),
+        method: 'crypto',
+      })
+      const sent = await tx.signAndSend()
+      setTxHash(sent.sendTransactionResponse?.hash ?? null)
+      finishLog()
+      setStep('done')
+      onContributed()
+      refresh()
     } catch (e) {
       failLog()
       setErr(friendlyError(e))
@@ -182,8 +169,10 @@ export function ContributeSheet({
     }
   }
 
+  const bankDone = orderStatus?.stage === 'done'
+
   return (
-    <Sheet open={open} onClose={close} dismissible={!busy || step === 'done'}>
+    <Sheet open={open} onClose={close} dismissible={!busy}>
       <AnimatePresence mode="wait" initial={false}>
         {step === 'form' && (
           <motion.div key="form" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }}>
@@ -248,6 +237,12 @@ export function ContributeSheet({
               />
             </div>
 
+            {bankTooBig && maxBankUsd != null && (
+              <p className="mt-3 text-[13px] text-[#D33]">
+                The anchor takes at most {fmtTry(MAX_BANK_TRY)} per transfer (about {fmtUsd(maxBankUsd)}). Split it, or
+                pay the rest in USDC.
+              </p>
+            )}
             <Button
               size="lg"
               full
@@ -260,38 +255,44 @@ export function ContributeSheet({
           </motion.div>
         )}
 
-        {(step === 'bank' || step === 'crypto') && (
-          <motion.div key="progress" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }}>
-            <h2 className="font-display text-[22px] font-bold">
-              {step === 'bank' ? 'Bank transfer' : 'Paying in USDC'}
-            </h2>
-            <StepLog lines={log} />
-
-            {step === 'bank' && bank && !txHash && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 rounded-2xl bg-white p-4 shadow-card"
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="font-display text-[15px] font-bold">Send {fmtTry(tryAmount ?? 0)}</span>
-                  <Pill tone="outline">Simulated bank</Pill>
-                </div>
-                <dl className="space-y-2 text-[14px]">
-                  <Row k="Bank" v={bank.bankName ?? 'TR Mock Bank'} />
-                  <Row k="IBAN" v={bank.iban ?? '—'} mono />
-                  <Row k="Description" v={bank.reference ?? '—'} mono />
-                </dl>
-                <p className="mt-3 text-[12px] text-muted">
-                  In real life you'd send this from your banking app. This sandbox has no real bank, so
-                  the button below plays the bank for you.
-                </p>
-                <Button full variant="accent" size="lg" className="mt-3" onClick={simulateBank} loading={busy}>
-                  I sent the transfer
-                </Button>
-              </motion.div>
+        {step === 'bank' && (
+          <motion.div key="bank" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }}>
+            {!myOrder && !bankDone && (
+              <>
+                <h2 className="font-display text-[22px] font-bold">Bank transfer</h2>
+                <StepLog lines={log} />
+              </>
             )}
+            {myOrder && (
+              <PendingDepositCard
+                pending={myOrder}
+                onContributed={() => {
+                  onContributed()
+                  refresh()
+                }}
+              />
+            )}
+            {bankDone && <DoneCard emoji={view.pool.emoji} usd={usd} title={view.pool.title} txHash={orderStatus?.txHash ?? null} onClose={close} />}
+            {err && (
+              <div className="mt-4 space-y-3">
+                <p className="text-[14px] text-[#D33]">{err}</p>
+                <Button full variant="ghost" onClick={reset}>
+                  Back
+                </Button>
+              </div>
+            )}
+            {myOrder && !bankDone && (
+              <Button full variant="ghost" className="mt-3" onClick={close}>
+                Close, finish in the background
+              </Button>
+            )}
+          </motion.div>
+        )}
 
+        {step === 'crypto' && (
+          <motion.div key="crypto" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }}>
+            <h2 className="font-display text-[22px] font-bold">Paying in USDC</h2>
+            <StepLog lines={log} />
             {err && (
               <div className="mt-4 space-y-3">
                 <p className="text-[14px] text-[#D33]">{err}</p>
@@ -304,36 +305,54 @@ export function ContributeSheet({
         )}
 
         {step === 'done' && (
-          <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="py-4 text-center">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.1 }}
-              className="mx-auto flex size-20 items-center justify-center rounded-full bg-accent text-[36px]"
-            >
-              {view.pool.emoji}
-            </motion.div>
-            <h2 className="font-display mt-4 text-[24px] font-bold">You're in!</h2>
-            <p className="mt-1 text-[14px] text-ink-2">
-              {fmtUsd(usd)} added to “{view.pool.title}”.
-            </p>
-            {txHash && (
-              <a
-                href={explorerTx(txHash)}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-3 inline-block text-[13px] text-muted underline decoration-line-2 underline-offset-2"
-              >
-                View on Stellar
-              </a>
-            )}
-            <Button full size="lg" className="mt-6" onClick={close}>
-              Done
-            </Button>
-          </motion.div>
+          <DoneCard key="done" emoji={view.pool.emoji} usd={usd} title={view.pool.title} txHash={txHash} onClose={close} />
         )}
       </AnimatePresence>
     </Sheet>
+  )
+}
+
+function DoneCard({
+  emoji,
+  usd,
+  title,
+  txHash,
+  onClose,
+}: {
+  emoji: string
+  usd: number
+  title: string
+  txHash: string | null
+  onClose: () => void
+}) {
+  return (
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="py-4 text-center">
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.1 }}
+        className="mx-auto flex size-20 items-center justify-center rounded-full bg-accent text-[36px]"
+      >
+        {emoji}
+      </motion.div>
+      <h2 className="font-display mt-4 text-[24px] font-bold">You're in!</h2>
+      <p className="mt-1 text-[14px] text-ink-2">
+        {fmtUsd(usd)} added to “{title}”.
+      </p>
+      {txHash && (
+        <a
+          href={explorerTx(txHash)}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-block text-[13px] text-muted underline decoration-line-2 underline-offset-2"
+        >
+          View on Stellar
+        </a>
+      )}
+      <Button full size="lg" className="mt-6" onClick={onClose}>
+        Done
+      </Button>
+    </motion.div>
   )
 }
 
@@ -341,18 +360,6 @@ function defaultAmount(remaining: number) {
   if (remaining <= 0) return '25'
   if (remaining <= 100 && Number.isInteger(remaining)) return String(remaining)
   return '25'
-}
-
-function statusLabel(s: string) {
-  return (
-    {
-      pending_user_transfer_start: 'waiting for the bank',
-      pending_anchor: '₺ received, converting to USDC',
-      pending_trust: 'waiting for USDC trustline',
-      pending_stellar: 'sending USDC on Stellar',
-      completed: 'done',
-    }[s] ?? s.replaceAll('_', ' ')
-  )
 }
 
 function MethodCard({
@@ -381,15 +388,6 @@ function MethodCard({
       <div className="font-display mt-1 text-[14px] font-bold">{title}</div>
       <div className={cx('text-[12px]', active ? 'text-white/70' : 'text-muted')}>{sub}</div>
     </button>
-  )
-}
-
-function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3">
-      <dt className="text-muted">{k}</dt>
-      <dd className={cx('text-right font-semibold break-all', mono && 'font-mono text-[13px]')}>{v}</dd>
-    </div>
   )
 }
 

@@ -6,6 +6,7 @@ import { Button, Card, Pill, inputCls, shortAddr } from '@/components/ui'
 import { useWallet } from '@/hooks/useWallet'
 import * as anchor from '@/lib/anchor'
 import { CONTRACT_ID, explorerContract } from '@/lib/config'
+import { faucetInfo, faucetPay, type FaucetInfo } from '@/lib/faucet'
 import { fmtBase, fmtUsd } from '@/lib/money'
 import { fetchPools, statusOf } from '@/lib/pool'
 
@@ -24,15 +25,40 @@ function DemoPage() {
   const [secret, setSecret] = useState('')
   const [importErr, setImportErr] = useState<string | null>(null)
   const [pools, setPools] = useState<Pool[] | null>(null)
-  const [topup, setTopup] = useState('100')
+  const [topup, setTopup] = useState('60')
   const [log, setLog] = useState<Line[]>([])
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
+  const [faucet, setFaucet] = useState<FaucetInfo | null>(null)
   const loadPools = () => fetchPools(0, 50).then(setPools).catch(() => setPools([]))
   useEffect(() => {
     loadPools()
+    faucetInfo().then(setFaucet)
   }, [])
+
+  /** Instant test USDC from the server's demo treasury (when configured). */
+  const doFaucet = async () => {
+    const usd = Number(topup)
+    if (!(usd > 0)) return
+    setBusy(true)
+    setErr(null)
+    setLog([])
+    try {
+      push('prep', 'Preparing account (friendbot + USDC trustline)')
+      await ensureReady()
+      push('pay', `Demo treasury sending $${usd} USDC`)
+      await faucetPay(signer.address, usd)
+      setLog((l) => l.map((x) => ({ ...x, state: 'done' })))
+      await refresh()
+      faucetInfo().then(setFaucet)
+    } catch (e) {
+      setLog((l) => l.map((x) => (x.state === 'active' ? { ...x, state: 'error' } : x)))
+      setErr((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const push = (key: string, text: string, sub?: string) =>
     setLog((l) => [...l.map((x) => (x.state === 'active' ? { ...x, state: 'done' as const } : x)), { key, text, sub, state: 'active' }])
@@ -100,9 +126,14 @@ function DemoPage() {
         <div className="flex gap-2">
           <input className={inputCls} inputMode="decimal" value={topup} onChange={(e) => setTopup(e.target.value)} />
           <Button onClick={doTopup} loading={busy} className="shrink-0">
-            Get ${topup || '0'} USDC via anchor
+            Get ${topup || '0'} via anchor
           </Button>
         </div>
+        {faucet?.enabled && (
+          <Button variant="ghost" full onClick={doFaucet} loading={busy}>
+            Get ${topup || '0'} from demo treasury (instant, {faucet.balance != null ? fmtUsd(faucet.balance, { maximumFractionDigits: 0 }) : '—'} left)
+          </Button>
+        )}
         {log.length > 0 && <StepLog lines={log} />}
         {err && <p className="text-[13px] text-[#D33]">{err}</p>}
         <div className="rounded-2xl bg-bg p-3">

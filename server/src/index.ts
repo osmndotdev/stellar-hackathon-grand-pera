@@ -8,6 +8,7 @@ import Fastify from 'fastify'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { faucetAddress, faucetBalance, faucetEnabled, faucetPay } from './faucet.js'
 import { getPoolSummary } from './pool.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -26,6 +27,24 @@ await app.register(fastifyStatic, {
 })
 
 app.get('/healthz', async () => ({ ok: true }))
+
+// Demo faucet (testnet). See faucet.ts.
+app.get('/api/faucet', async () => ({
+  enabled: faucetEnabled(),
+  address: faucetAddress(),
+  balance: faucetEnabled() ? await faucetBalance().catch(() => null) : null,
+}))
+app.post('/api/faucet', async (req, reply) => {
+  if (!faucetEnabled()) return reply.code(404).send({ error: 'faucet disabled' })
+  const { address, usd } = (req.body ?? {}) as { address?: string; usd?: number }
+  try {
+    const hash = await faucetPay(String(address ?? ''), Number(usd ?? 0))
+    return { hash }
+  } catch (e) {
+    req.log.warn({ err: e }, 'faucet failed')
+    return reply.code(400).send({ error: (e as Error).message })
+  }
+})
 
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useCelebrate } from '@/components/Celebration'
 import { ClaimCard, RefundCard } from '@/components/ClaimCard'
 import { ContributeSheet } from '@/components/ContributeSheet'
+import { PendingDepositCard } from '@/components/PendingDeposit'
 import { Countdown, fmtDate } from '@/components/Countdown'
 import { ProgressBar } from '@/components/ProgressBar'
 import { ShareCard } from '@/components/ShareCard'
@@ -12,6 +13,7 @@ import { usePool } from '@/hooks/usePool'
 import { useWallet } from '@/hooks/useWallet'
 import { CONTRACT_ID, explorerContract } from '@/lib/config'
 import { fmtBase, fmtUsd, pct, toUsdc } from '@/lib/money'
+import { usePending } from '@/lib/pending'
 import type { PoolStatus } from '@/lib/pool'
 import { vibeOf, vibeStyle } from '@/lib/vibes'
 
@@ -28,6 +30,7 @@ function PoolPage() {
   const { signer } = useWallet()
   const [sheet, setSheet] = useState(false)
   const [celebrate, setCelebrate] = useState(false)
+  const pending = usePending(Number(id), signer.address)
 
   useEffect(() => {
     if (justFunded) {
@@ -108,6 +111,8 @@ function PoolPage() {
           )}
         </AnimatePresence>
       </Card>
+
+      {!sheet && pending.map((p) => <PendingDepositCard key={p.orderId} pending={p} onContributed={reload} compact />)}
 
       {status === 'open' && (
         <Button size="lg" full onClick={() => setSheet(true)}>
