@@ -10,11 +10,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@creit.tech/stellar-wallets-kit": "^2.6.0",
+    "@stellar/stellar-sdk": "^17.1.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-router": "^1.170.38",
+    "buffer": "^6.0.3",
+    "canvas-confetti": "^1.9.4",
+    "motion": "^13.4.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@tanstack/router-plugin": "^1.168.40",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

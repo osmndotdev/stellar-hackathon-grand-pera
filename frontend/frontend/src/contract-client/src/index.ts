@@ -1,0 +1,223 @@
+import { Buffer } from "buffer";
+import { Address } from "@stellar/stellar-sdk";
+import {
+  AssembledTransaction,
+  Client as ContractClient,
+  ClientOptions as ContractClientOptions,
+  MethodOptions,
+  Result,
+  Spec as ContractSpec,
+} from "@stellar/stellar-sdk/contract";
+import type {
+  u32,
+  i32,
+  u64,
+  i64,
+  u128,
+  i128,
+  u256,
+  i256,
+  Option,
+  Timepoint,
+  Duration,
+} from "@stellar/stellar-sdk/contract";
+export * from "@stellar/stellar-sdk";
+export * as contract from "@stellar/stellar-sdk/contract";
+export * as rpc from "@stellar/stellar-sdk/rpc";
+
+if (typeof window !== "undefined") {
+  //@ts-ignore Buffer exists
+  window.Buffer = window.Buffer || Buffer;
+}
+
+
+export const networks = {
+  testnet: {
+    networkPassphrase: "Test SDF Network ; September 2015",
+    contractId: "CAGBPB62IWEUI2MMVXSUCVXWW7OLWSFX2NOFY3YON7VPCRC67XAZP5FQ",
+  }
+} as const
+
+
+export interface Pool {
+  claimed: boolean;
+  contributor_count: u32;
+  created_at: u64;
+  creator: string;
+  /**
+ * Unix timestamp (seconds). Contributions close after it.
+ */
+deadline: u64;
+  emoji: string;
+  id: u32;
+  raised: i128;
+  /**
+ * Funding target in token base units (USDC has 7 decimals).
+ */
+target: i128;
+  title: string;
+  /**
+ * Index into the frontend's accent palette.
+ */
+vibe: u32;
+}
+
+export const Errors = {
+  1: {message:"NotFound"},
+  2: {message:"InvalidAmount"},
+  3: {message:"InvalidDeadline"},
+  4: {message:"TitleTooLong"},
+  5: {message:"NameTooLong"},
+  6: {message:"PoolClosed"},
+  7: {message:"AlreadyClaimed"},
+  8: {message:"TargetNotReached"},
+  9: {message:"NotRefundable"},
+  10: {message:"NothingToRefund"},
+  11: {message:"TooManyContributors"}
+}
+
+
+
+
+
+
+export interface Contribution {
+  amount: i128;
+  at: u64;
+  contributor: string;
+  /**
+ * "bank" or "crypto" — how the contributor paid in. Informational only.
+ */
+method: string;
+  name: string;
+  refunded: boolean;
+}
+
+export interface Client {
+  /**
+   * Construct and simulate a admin transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  admin: (options?: MethodOptions) => Promise<AssembledTransaction<string>>
+
+  /**
+   * Construct and simulate a claim transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   * Creator takes the pooled funds once the target is reached.
+   */
+  claim: ({id}: {id: u32}, options?: MethodOptions) => Promise<AssembledTransaction<Result<i128>>>
+
+  /**
+   * Construct and simulate a count transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  count: (options?: MethodOptions) => Promise<AssembledTransaction<u32>>
+
+  /**
+   * Construct and simulate a token transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  token: (options?: MethodOptions) => Promise<AssembledTransaction<string>>
+
+  /**
+   * Construct and simulate a create transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  create: ({creator, title, target, deadline, emoji, vibe}: {creator: string, title: string, target: i128, deadline: u64, emoji: string, vibe: u32}, options?: MethodOptions) => Promise<AssembledTransaction<Result<u32>>>
+
+  /**
+   * Construct and simulate a refund transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   * After the deadline, if the target was missed, a contributor reclaims
+   * their tokens.
+   */
+  refund: ({id, contributor}: {id: u32, contributor: string}, options?: MethodOptions) => Promise<AssembledTransaction<Result<i128>>>
+
+  /**
+   * Construct and simulate a get_pool transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  get_pool: ({id}: {id: u32}, options?: MethodOptions) => Promise<AssembledTransaction<Result<Pool>>>
+
+  /**
+   * Construct and simulate a contribute transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   * Move `amount` of the settlement token from `from` into the pool.
+   * A repeat contribution from the same address is added to their record.
+   */
+  contribute: ({id, from, amount, name, method}: {id: u32, from: string, amount: i128, name: string, method: string}, options?: MethodOptions) => Promise<AssembledTransaction<Result<i128>>>
+
+  /**
+   * Construct and simulate a list_pools transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   * Pools with ids in `[from, from + limit)`, skipping missing ones.
+   */
+  list_pools: ({from, limit}: {from: u32, limit: u32}, options?: MethodOptions) => Promise<AssembledTransaction<Array<Pool>>>
+
+  /**
+   * Construct and simulate a get_contribution transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  get_contribution: ({id, contributor}: {id: u32, contributor: string}, options?: MethodOptions) => Promise<AssembledTransaction<Option<Contribution>>>
+
+  /**
+   * Construct and simulate a get_contributions transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   */
+  get_contributions: ({id}: {id: u32}, options?: MethodOptions) => Promise<AssembledTransaction<Array<Contribution>>>
+
+  /**
+   * Construct and simulate a debug_set_deadline transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   * DEMO HELPER (admin only): rewrite a pool's deadline so an "expired,
+   * underfunded" pool can be staged for the refund demo without waiting.
+   * Not part of the product; remove before any mainnet deployment.
+   */
+  debug_set_deadline: ({id, deadline}: {id: u32, deadline: u64}, options?: MethodOptions) => Promise<AssembledTransaction<Result<void>>>
+
+}
+export class Client extends ContractClient {
+  static async deploy<T = Client>(
+        /** Constructor/Initialization Args for the contract's `__constructor` method */
+        {admin, token}: {admin: string, token: string},
+    /** Options for initializing a Client as well as for calling a method, with extras specific to deploying. */
+    options: MethodOptions &
+      Omit<ContractClientOptions, "contractId"> & {
+        /** The hash of the Wasm blob, which must already be installed on-chain. */
+        wasmHash: Buffer | string;
+        /** Salt used to generate the contract's ID. Passed through to {@link Operation.createCustomContract}. Default: random. */
+        salt?: Buffer | Uint8Array;
+        /** The format used to decode `wasmHash`, if it's provided as a string. */
+        format?: "hex" | "base64";
+      }
+  ): Promise<AssembledTransaction<T>> {
+    return ContractClient.deploy({admin, token}, options)
+  }
+  constructor(public readonly options: ContractClientOptions) {
+    super(
+      new ContractSpec([ "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",
+        "AAAAAAAAAFJBZnRlciB0aGUgZGVhZGxpbmUsIGlmIHRoZSB0YXJnZXQgd2FzIG1pc3NlZCwgYSBjb250cmlidXRvciByZWNsYWltcwp0aGVpciB0b2tlbnMuAAAAAAAGcmVmdW5kAAAAAAACAAAAAAAAAAJpZAAAAAAABAAAAAAAAAALY29udHJpYnV0b3IAAAAAEwAAAAEAAAPpAAAACwAAAAM=",
+        "AAAAAAAAAAAAAAAIZ2V0X3Bvb2wAAAABAAAAAAAAAAJpZAAAAAAABAAAAAEAAAPpAAAH0AAAAARQb29sAAAAAw==",
+        "AAAAAAAAAIZNb3ZlIGBhbW91bnRgIG9mIHRoZSBzZXR0bGVtZW50IHRva2VuIGZyb20gYGZyb21gIGludG8gdGhlIHBvb2wuCkEgcmVwZWF0IGNvbnRyaWJ1dGlvbiBmcm9tIHRoZSBzYW1lIGFkZHJlc3MgaXMgYWRkZWQgdG8gdGhlaXIgcmVjb3JkLgAAAAAACmNvbnRyaWJ1dGUAAAAAAAUAAAAAAAAAAmlkAAAAAAAEAAAAAAAAAARmcm9tAAAAEwAAAAAAAAAGYW1vdW50AAAAAAALAAAAAAAAAARuYW1lAAAAEAAAAAAAAAAGbWV0aG9kAAAAAAARAAAAAQAAA+kAAAALAAAAAw==",
+        "AAAAAAAAAEBQb29scyB3aXRoIGlkcyBpbiBgW2Zyb20sIGZyb20gKyBsaW1pdClgLCBza2lwcGluZyBtaXNzaW5nIG9uZXMuAAAACmxpc3RfcG9vbHMAAAAAAAIAAAAAAAAABGZyb20AAAAEAAAAAAAAAAVsaW1pdAAAAAAAAAQAAAABAAAD6gAAB9AAAAAEUG9vbA==",
+        "AAAAAAAAADZgdG9rZW5gIGlzIHRoZSBzZXR0bGVtZW50IGFzc2V0IChVU0RDIFNBQyBvbiB0ZXN0bmV0KS4AAAAAAA1fX2NvbnN0cnVjdG9yAAAAAAAAAgAAAAAAAAAFYWRtaW4AAAAAAAATAAAAAAAAAAV0b2tlbgAAAAAAABMAAAAA",
+        "AAAAAAAAAAAAAAAQZ2V0X2NvbnRyaWJ1dGlvbgAAAAIAAAAAAAAAAmlkAAAAAAAEAAAAAAAAAAtjb250cmlidXRvcgAAAAATAAAAAQAAA+gAAAfQAAAADENvbnRyaWJ1dGlvbg==",
+        "AAAAAAAAAAAAAAARZ2V0X2NvbnRyaWJ1dGlvbnMAAAAAAAABAAAAAAAAAAJpZAAAAAAABAAAAAEAAAPqAAAH0AAAAAxDb250cmlidXRpb24=",
+        "AAAAAAAAAMdERU1PIEhFTFBFUiAoYWRtaW4gb25seSk6IHJld3JpdGUgYSBwb29sJ3MgZGVhZGxpbmUgc28gYW4gImV4cGlyZWQsCnVuZGVyZnVuZGVkIiBwb29sIGNhbiBiZSBzdGFnZWQgZm9yIHRoZSByZWZ1bmQgZGVtbyB3aXRob3V0IHdhaXRpbmcuCk5vdCBwYXJ0IG9mIHRoZSBwcm9kdWN0OyByZW1vdmUgYmVmb3JlIGFueSBtYWlubmV0IGRlcGxveW1lbnQuAAAAABJkZWJ1Z19zZXRfZGVhZGxpbmUAAAAAAAIAAAAAAAAAAmlkAAAAAAAEAAAAAAAAAAhkZWFkbGluZQAAAAYAAAABAAAD6QAAAAIAAAAD" ]),
+      options
+    )
+  }
+  public readonly fromJSON = {
+    admin: this.txFromJSON<string>,
+        claim: this.txFromJSON<Result<i128>>,
+        count: this.txFromJSON<u32>,
+        token: this.txFromJSON<string>,
+        create: this.txFromJSON<Result<u32>>,
+        refund: this.txFromJSON<Result<i128>>,
+        get_pool: this.txFromJSON<Result<Pool>>,
+        contribute: this.txFromJSON<Result<i128>>,
+        list_pools: this.txFromJSON<Array<Pool>>,
+        get_contribution: this.txFromJSON<Option<Contribution>>,
+        get_contributions: this.txFromJSON<Array<Contribution>>,
+        debug_set_deadline: this.txFromJSON<Result<void>>
+  }
+}

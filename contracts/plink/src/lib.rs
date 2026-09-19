@@ -34,6 +34,8 @@ pub enum DataKey {
 pub struct Pool {
     pub id: u32,
     pub creator: Address,
+    /// Display name the creator chose (informational).
+    pub organizer: String,
     pub title: String,
     /// Funding target in token base units (USDC has 7 decimals).
     pub target: i128,
@@ -132,6 +134,7 @@ impl PlinkContract {
     pub fn create(
         env: Env,
         creator: Address,
+        organizer: String,
         title: String,
         target: i128,
         deadline: u64,
@@ -139,6 +142,9 @@ impl PlinkContract {
         vibe: u32,
     ) -> Result<u32, Error> {
         creator.require_auth();
+        if organizer.len() > MAX_NAME_LEN {
+            return Err(Error::NameTooLong);
+        }
         if target <= 0 {
             return Err(Error::InvalidAmount);
         }
@@ -156,6 +162,7 @@ impl PlinkContract {
         let pool = Pool {
             id,
             creator: creator.clone(),
+            organizer,
             title,
             target,
             deadline,

@@ -3,8 +3,8 @@
   "networkPassphrase": "Test SDF Network ; September 2015",
   "rpcUrl": "https://soroban-testnet.stellar.org",
   "horizonUrl": "https://horizon-testnet.stellar.org",
-  "contractId": "CAGBPB62IWEUI2MMVXSUCVXWW7OLWSFX2NOFY3YON7VPCRC67XAZP5FQ",
-  "deployTx": "6ae697f56fb05ec7dbf21c78f0955f0d86acc6a0b3feade940a752bb3e14cb46",
+  "contractId": "CDTYAFC6LL2DSZYOIPRLXN2TU4OJ6B7TMZCKVDTJATUAJZMKWTNE564L",
+  "deployTx": "77a7f8d36137a8de347c928c9dc6ff9fa93dafc2b9c97a90dcacb360e6460255",
   "admin": "GDXSRWAPVP7ZV7S42GIG47GJDTQGHLTU7RKTJJEU6I5BYMSSN6ISOGLQ",
   "usdc": {
     "code": "USDC",

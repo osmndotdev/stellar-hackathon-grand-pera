@@ -54,6 +54,7 @@ fn setup() -> Setup {
 fn create_pool(s: &Setup, target: i128, deadline: u64) -> u32 {
     s.client.create(
         &s.creator,
+        &String::from_str(&s.env, "Osman"),
         &String::from_str(&s.env, "Weekend house in Sile"),
         &target,
         &deadline,
@@ -217,12 +218,13 @@ fn validation_errors() {
     let now = s.env.ledger().timestamp();
     let title = String::from_str(&s.env, "x");
     let emoji = String::from_str(&s.env, "🎉");
+    let who = String::from_str(&s.env, "Osman");
     assert_eq!(
-        s.client.try_create(&s.creator, &title, &0, &(now + 10), &emoji, &0),
+        s.client.try_create(&s.creator, &who, &title, &0, &(now + 10), &emoji, &0),
         Err(Ok(Error::InvalidAmount))
     );
     assert_eq!(
-        s.client.try_create(&s.creator, &title, &USDC, &now, &emoji, &0),
+        s.client.try_create(&s.creator, &who, &title, &USDC, &now, &emoji, &0),
         Err(Ok(Error::InvalidDeadline))
     );
     let id = create_pool(&s, USDC, now + 10);
