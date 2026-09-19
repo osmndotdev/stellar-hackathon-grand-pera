@@ -8,7 +8,6 @@ import * as anchor from '@/lib/anchor'
 import { CONTRACT_ID, explorerContract } from '@/lib/config'
 import { fmtBase, fmtUsd } from '@/lib/money'
 import { fetchPools, statusOf } from '@/lib/pool'
-import { getBalances } from '@/lib/stellar'
 
 export const Route = createFileRoute('/demo')({
   component: DemoPage,
@@ -21,7 +20,9 @@ type Line = { key: string; text: string; state: 'active' | 'done' | 'error'; sub
  * nothing bypasses the contract rules.
  */
 function DemoPage() {
-  const { signer, balances, refresh, ensureReady, resetInstant } = useWallet()
+  const { signer, balances, refresh, ensureReady, resetInstant, importSecret } = useWallet()
+  const [secret, setSecret] = useState('')
+  const [importErr, setImportErr] = useState<string | null>(null)
   const [pools, setPools] = useState<Pool[] | null>(null)
   const [topup, setTopup] = useState('100')
   const [log, setLog] = useState<Line[]>([])
@@ -104,15 +105,44 @@ function DemoPage() {
         </div>
         {log.length > 0 && <StepLog lines={log} />}
         {err && <p className="text-[13px] text-[#D33]">{err}</p>}
+        <div className="rounded-2xl bg-bg p-3">
+          <div className="text-[13px] font-semibold">Become another account</div>
+          <p className="mt-0.5 text-[12px] text-muted">
+            Paste a testnet secret (e.g. a seeded persona from scripts/.seed-state.json) to act as them here.
+          </p>
+          <div className="mt-2 flex gap-2">
+            <input
+              className={inputCls}
+              placeholder="S…"
+              value={secret}
+              onChange={(e) => setSecret(e.target.value)}
+              autoComplete="off"
+            />
+            <Button
+              variant="ghost"
+              className="shrink-0"
+              disabled={!secret.trim()}
+              onClick={async () => {
+                setImportErr(null)
+                try {
+                  await importSecret(secret)
+                  setSecret('')
+                } catch (e) {
+                  setImportErr((e as Error).message)
+                }
+              }}
+            >
+              Switch
+            </Button>
+          </div>
+          {importErr && <p className="mt-1 text-[12px] text-[#D33]">{importErr}</p>}
+        </div>
         {signer.kind === 'instant' && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => {
-              if (confirm('Forget this instant account and make a new one?')) {
-                resetInstant()
-                setTimeout(() => getBalances(signer.address).catch(() => {}), 0)
-              }
+              if (confirm('Forget this instant account and make a new one?')) resetInstant()
             }}
           >
             Reset instant account

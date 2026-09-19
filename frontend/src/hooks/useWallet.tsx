@@ -3,6 +3,7 @@ import { getBalances, prepareAccount, type Balances } from '@/lib/stellar'
 import {
   connectKit,
   disconnectKit,
+  importInstantSecret,
   instantSigner,
   resetInstantWallet,
   restoreKit,
@@ -19,6 +20,7 @@ interface WalletCtx {
   connectExternal: () => Promise<void>
   useInstant: () => Promise<void>
   resetInstant: () => void
+  importSecret: (secret: string) => Promise<void>
 }
 
 const Ctx = createContext<WalletCtx | null>(null)
@@ -74,9 +76,15 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     setSigner(instantSigner())
   }, [])
 
+  const importSecret = useCallback(async (secret: string) => {
+    importInstantSecret(secret)
+    await disconnectKit()
+    setSigner(instantSigner())
+  }, [])
+
   const value = useMemo(
-    () => ({ signer, balances, refresh, ensureReady, preparing, connectExternal, useInstant, resetInstant }),
-    [signer, balances, refresh, ensureReady, preparing, connectExternal, useInstant, resetInstant],
+    () => ({ signer, balances, refresh, ensureReady, preparing, connectExternal, useInstant, resetInstant, importSecret }),
+    [signer, balances, refresh, ensureReady, preparing, connectExternal, useInstant, resetInstant, importSecret],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

@@ -38,6 +38,17 @@ export function getInstantKeypair(): Keypair {
   return kp
 }
 
+/** Demo helper: switch this browser to a specific testnet account. */
+export function importInstantSecret(secret: string) {
+  const kp = Keypair.fromSecret(secret.trim())
+  try {
+    localStorage.setItem(LS_SECRET, kp.secret())
+  } catch {
+    /* ignore */
+  }
+  return kp.publicKey()
+}
+
 export function resetInstantWallet() {
   try {
     localStorage.removeItem(LS_SECRET)
