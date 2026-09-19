@@ -161,9 +161,20 @@ just bindings
 Production build and container (what the VPS runs behind Caddy):
 
 ```bash
-cp .env.example .env  # PUBLIC_URL + PLINK_PORT
+cp .env.example .env  # PUBLIC_URL, PLINK_PORT, optional DEMO_TREASURY_SECRET
 just up               # docker compose up -d --build
 ```
+
+Caddy in front of it:
+
+```caddyfile
+stellar-hackathon-grand-pera.osmn.cc {
+    reverse_proxy 127.0.0.1:10013
+}
+```
+
+`PUBLIC_URL` is baked into the frontend at build time (share links) and read by
+the server at runtime (Open Graph tags), so rebuild after changing it.
 
 ## Demo
 

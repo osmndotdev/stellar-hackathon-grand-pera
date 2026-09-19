@@ -1,6 +1,7 @@
 # ---- build ----
 FROM node:24-alpine AS build
-RUN corepack enable
+# python3/make/g++: optional native deps (bufferutil, utf-8-validate) pulled in by wallet modules.
+RUN apk add --no-cache python3 make g++ && corepack enable
 WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY frontend/package.json frontend/
