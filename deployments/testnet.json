@@ -1,0 +1,18 @@
+{
+  "network": "testnet",
+  "networkPassphrase": "Test SDF Network ; September 2015",
+  "rpcUrl": "https://soroban-testnet.stellar.org",
+  "horizonUrl": "https://horizon-testnet.stellar.org",
+  "contractId": "CAGBPB62IWEUI2MMVXSUCVXWW7OLWSFX2NOFY3YON7VPCRC67XAZP5FQ",
+  "deployTx": "6ae697f56fb05ec7dbf21c78f0955f0d86acc6a0b3feade940a752bb3e14cb46",
+  "admin": "GDXSRWAPVP7ZV7S42GIG47GJDTQGHLTU7RKTJJEU6I5BYMSSN6ISOGLQ",
+  "usdc": {
+    "code": "USDC",
+    "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+    "sac": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+  },
+  "anchor": {
+    "homeDomain": "tr-mock-anchor.fly.dev",
+    "treasury": "GCLCZEQZ2THTEDAOFI66LACNPLY4OBKN7VKLEZFMBIHYKYQOW2W7T3Z6"
+  }
+}
