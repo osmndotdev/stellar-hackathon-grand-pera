@@ -26,7 +26,6 @@ COPY --from=build /app/server/node_modules server/node_modules
 COPY deployments deployments
 COPY --from=build /app/frontend/dist frontend/dist
 COPY --from=build /app/server/dist server/dist
-COPY server/public server/public
 EXPOSE 3000
 RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/*
 CMD ["node", "server/dist/index.js"]
