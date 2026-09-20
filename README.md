@@ -12,10 +12,10 @@ every contributor takes their own money back.
 Built at the Stellar Pro Hackathon 2026 (Istanbul, Genesis track). Live on
 **Stellar testnet** with real on-chain contributions, claims and refunds.
 
-- Live app: https://stellar-hackathon-grand-pera.osmn.cc/
-- Product cheat sheet: https://claude.ai/artifact/HtTkMattk7Dz5BX7aYwYr8
-- Contract: [`CDTYAFC6LL2DSZYOIPRLXN2TU4OJ6B7TMZCKVDTJATUAJZMKWTNE564L`](https://stellar.expert/explorer/testnet/contract/CDTYAFC6LL2DSZYOIPRLXN2TU4OJ6B7TMZCKVDTJATUAJZMKWTNE564L) (see [deployments/testnet.json](deployments/testnet.json))
-- Fiat rail: [TR Mock Anchor](https://tr-mock-anchor.fly.dev/) (TRY ⇄ USDC, SEP-1/10/12/38/6, testnet sandbox)
+- Live app: <a href="https://stellar-hackathon-grand-pera.osmn.cc/" target="_blank" rel="noopener">stellar-hackathon-grand-pera.osmn.cc</a>
+- Product cheat sheet: <a href="https://claude.ai/artifact/HtTkMattk7Dz5BX7aYwYr8" target="_blank" rel="noopener">claude.ai/artifact/HtTkMattk7Dz5BX7aYwYr8</a>
+- Contract: <a href="https://stellar.expert/explorer/testnet/contract/CDTYAFC6LL2DSZYOIPRLXN2TU4OJ6B7TMZCKVDTJATUAJZMKWTNE564L" target="_blank" rel="noopener"><code>CDTYAFC6LL2DSZYOIPRLXN2TU4OJ6B7TMZCKVDTJATUAJZMKWTNE564L</code></a> (see [deployments/testnet.json](deployments/testnet.json))
+- Fiat rail: <a href="https://tr-mock-anchor.fly.dev/" target="_blank" rel="noopener">TR Mock Anchor</a> (TRY ⇄ USDC, SEP-1/10/12/38/6, testnet sandbox)
 
 ## Why
 
