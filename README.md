@@ -14,6 +14,7 @@ Built at the Stellar Pro Hackathon 2026 (Istanbul, Genesis track). Live on
 
 - Live app: <a href="https://stellar-hackathon-grand-pera.osmn.cc/" target="_blank" rel="noopener">stellar-hackathon-grand-pera.osmn.cc</a>
 - Product cheat sheet: <a href="https://claude.ai/artifact/HtTkMattk7Dz5BX7aYwYr8" target="_blank" rel="noopener">claude.ai/artifact/HtTkMattk7Dz5BX7aYwYr8</a>
+- Pitch deck: <a href="https://docs.google.com/presentation/d/1NXpIT-jFjC1L2SvEaBzkXUeodj5aBRCqzd3vKQcNAtg/edit?usp=sharing" target="_blank" rel="noopener">Google Slides</a>
 - Contract: <a href="https://stellar.expert/explorer/testnet/contract/CDTYAFC6LL2DSZYOIPRLXN2TU4OJ6B7TMZCKVDTJATUAJZMKWTNE564L" target="_blank" rel="noopener"><code>CDTYAFC6LL2DSZYOIPRLXN2TU4OJ6B7TMZCKVDTJATUAJZMKWTNE564L</code></a> (see [deployments/testnet.json](deployments/testnet.json))
 - Fiat rail: <a href="https://tr-mock-anchor.fly.dev/" target="_blank" rel="noopener">TR Mock Anchor</a> (TRY ⇄ USDC, SEP-1/10/12/38/6, testnet sandbox)
 
