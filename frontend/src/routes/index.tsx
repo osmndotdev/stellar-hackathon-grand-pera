@@ -82,13 +82,13 @@ function CreatePage() {
         </h1>
         <p className="mt-3 text-[15px] text-ink-2">
           Share it in the group chat. Everyone chips in by bank transfer or crypto. Money only
-          unlocks if you reach the goal, otherwise everyone gets it back.
+          unlocks if you hit the target, otherwise everyone gets it back.
         </p>
       </motion.div>
 
       <form onSubmit={submit} className="mt-6 space-y-4">
         <Card className="space-y-4 p-4">
-          <Field label="What's it for?">
+          <Field label="Goal">
             <input
               className={cx(inputCls, 'font-display h-14 text-[18px] font-bold')}
               placeholder="Weekend house in Şile"
@@ -107,7 +107,7 @@ function CreatePage() {
               onChange={(e) => setOrganizer(e.target.value)}
             />
           </Field>
-          <Field label="Goal" hint="Collected in USDC on Stellar. Bank payers see the ₺ equivalent.">
+          <Field label="Target" hint="Collected in USDC on Stellar. Bank payers see the ₺ equivalent.">
             <div className="relative">
               <span className="font-display absolute top-1/2 left-4 -translate-y-1/2 text-[18px] font-bold">
                 $

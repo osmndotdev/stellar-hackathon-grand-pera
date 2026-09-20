@@ -94,7 +94,7 @@ export function ClaimCard({ view, onChanged }: { view: PoolView; onChanged: () =
       {!claimed && (
         <>
           <p className="mt-1 text-[14px] text-ink-2">
-            Goal reached. {fmtBase(amount)} is yours to collect.
+            Target reached. {fmtBase(amount)} is yours to collect.
           </p>
           <Button full size="lg" variant="accent" className="mt-3" onClick={claim} loading={busy}>
             Claim {fmtBase(amount)}
@@ -215,7 +215,7 @@ export function RefundCard({ view, onChanged }: { view: PoolView; onChanged: () 
       <Card className="p-4">
         <h3 className="font-display text-[16px] font-bold">Didn't make it</h3>
         <p className="mt-1 text-[14px] text-ink-2">
-          The deadline passed below the goal. Everyone who chipped in can take their money back.
+          The deadline passed below the target. Everyone who chipped in can take their money back.
         </p>
       </Card>
     )
@@ -224,7 +224,7 @@ export function RefundCard({ view, onChanged }: { view: PoolView; onChanged: () 
     <Card className="p-4">
       <h3 className="font-display text-[16px] font-bold">Didn't make it</h3>
       <p className="mt-1 text-[14px] text-ink-2">
-        The goal wasn't reached by the deadline, so your {fmtBase(mine.amount)} is yours to take back.
+        The target wasn't reached by the deadline, so your {fmtBase(mine.amount)} is yours to take back.
       </p>
       <Button full size="lg" className="mt-3" onClick={refund} loading={busy}>
         Get my {fmtBase(mine.amount)} back

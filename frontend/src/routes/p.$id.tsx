@@ -105,7 +105,7 @@ function PoolPage() {
               animate={{ opacity: 1, y: 0 }}
               className="font-display mt-3 flex items-center gap-2 rounded-2xl bg-accent px-3 py-2 text-[14px] font-bold text-on-accent"
             >
-              <span className="text-[18px]">🎯</span> Goal reached!
+              <span className="text-[18px]">🎯</span> Target reached!
             </motion.div>
           )}
         </AnimatePresence>

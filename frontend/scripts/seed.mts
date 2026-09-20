@@ -1,8 +1,8 @@
 /**
  * Seeds the demo on testnet:
- *   1. "Weekend house in Şile": $120 goal, two contributions in ($50 Ayşe by
+ *   1. "Weekend house in Şile": $120 target, two contributions in ($50 Ayşe by
  *      bank, $40 Mert in USDC) → $30 to go. The live demo finishes it.
- *   2. "Class trip to Ankara": $500 goal, one $40 contribution, deadline
+ *   2. "Class trip to Ankara": $500 target, one $40 contribution, deadline
  *      moved into the past with the admin-only debug helper → refund demo.
  *
  * Personas are real testnet accounts (kept in scripts/.seed-state.json so
@@ -118,7 +118,7 @@ state.pools = { house: p1, trip: p2 }
 save()
 console.log(`
 Demo links:
-  house (one $30 chip-in from the goal):  /p/${p1}
+  house (one $30 chip-in from the target):  /p/${p1}
   trip  (expired, Zeynep can refund):     /p/${p2}
 Refund persona Zeynep secret is in scripts/.seed-state.json (import into the
 browser via the demo panel to demo the refund).

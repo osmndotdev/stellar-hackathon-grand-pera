@@ -178,7 +178,7 @@ export function ContributeSheet({
           <motion.div key="form" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }}>
             <h2 className="font-display text-[22px] font-bold">Chip in</h2>
             <p className="mt-1 text-[14px] text-ink-2">
-              {remaining > 0 ? `${fmtUsd(remaining)} to go.` : 'Goal reached, extra is welcome.'}
+              {remaining > 0 ? `${fmtUsd(remaining)} to go.` : 'Target reached, extra is welcome.'}
             </p>
 
             <div className="mt-4 flex gap-2">

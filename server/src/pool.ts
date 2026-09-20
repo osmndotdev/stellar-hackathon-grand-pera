@@ -54,7 +54,7 @@ export async function getPoolSummary(id: number): Promise<PoolSummary | null> {
     const status = p.claimed
       ? 'claimed'
       : p.raised >= p.target
-        ? 'goal reached'
+        ? 'target reached'
         : now > p.deadline
           ? 'ended'
           : 'open'

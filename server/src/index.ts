@@ -72,7 +72,7 @@ function withMeta(html: string, meta: { title: string; description: string; url:
 
 const defaultMeta = (url: string) => ({
   title: 'Plink',
-  description: 'Create a payment link in a blink. Group funding that unlocks only when the goal is reached.',
+  description: 'Create a payment link in a blink. Group funding that unlocks only when the target is reached.',
   url,
   image: `${PUBLIC_URL}/og.png`,
 })

@@ -2,10 +2,10 @@
 
 **Create a payment link in a blink.**
 
-Plink is link-first group funding on Stellar. Someone creates a link for a goal
+Plink is link-first group funding on Stellar. Someone creates a link for a goal with a target
 ("Weekend house in Şile, $120 by Sunday"), pastes it into the group chat, and
 everyone chips in, by Turkish bank transfer or with crypto. The money sits in a
-Soroban smart contract, not with the organizer. If the goal is reached before
+Soroban smart contract, not with the organizer. If the target is reached before
 the deadline, the organizer claims it (and can cash out to their IBAN). If not,
 every contributor takes their own money back.
 
@@ -82,7 +82,7 @@ for the organizer; otherwise contributors can refund after the deadline.**
   while `now ≤ deadline` and not claimed. Moves USDC from the contributor into
   the contract. A repeat contribution adds to the same record.
 - `claim(id)`: creator auth, only when `raised ≥ target`, once. Pays the whole
-  pool to the creator. Allowed after the deadline too, because the goal was hit.
+  pool to the creator. Allowed after the deadline too, because the target was hit.
 - `refund(id, contributor)`: contributor auth, only when `now > deadline` and
   `raised < target`. Returns exactly what that address put in.
 - Reads: `get_pool`, `get_contribution`, `get_contributions`, `list_pools`, `count`.
@@ -187,9 +187,9 @@ just seed
 This creates two pools on testnet with real anchor deposits from persona
 accounts and prints their links:
 
-- **Weekend house in Şile**: $120 goal, $90 in (Ayşe by bank, Mert in USDC),
+- **Weekend house in Şile**: $120 target, $90 in (Ayşe by bank, Mert in USDC),
   **$30 to go**.
-- **Class trip to Ankara**: $500 goal, $40 in, deadline already passed →
+- **Class trip to Ankara**: $500 target, $40 in, deadline already passed →
   refund demo.
 
 Pass `--creator-secret S…` (your browser's instant account secret, revealed in
@@ -200,13 +200,13 @@ personas directly instead of waiting on the anchor's payout queue.
 
 Run of show (2–3 minutes):
 
-1. **Create.** Home page: title, goal, deadline, pick a colour. "Create link".
+1. **Create.** Home page: goal, target, deadline, pick a colour. "Create link".
    The link card appears; copy or WhatsApp it.
 2. **Two contributors.** Open the seeded house link in two isolated browser
    profiles (or `localhost` vs `127.0.0.1`, which keep separate instant
    accounts). One chips in by **bank transfer** (IBAN card → "I sent the
-   transfer" → USDC lands → bar moves). The other chips in **USDC**. Goal
-   reached: confetti, sticker, "Goal reached".
+   transfer" → USDC lands → bar moves). The other chips in **USDC**. Target
+   reached: confetti, sticker, "Target reached".
 3. **Claim.** The organizer opens the link, sees "You're the organizer", claims,
    optionally cashes out to IBAN through the anchor.
 4. **Refund.** Open the expired trip link as Zeynep (demo panel → paste her
@@ -230,13 +230,13 @@ bar moves when the money lands. Check the anchor before going on stage:
 
 Airbuds-inspired: monochrome base, one vibrant accent per pool chosen at
 creation, wide bold display type (Unbounded), pill badges, tilted stickers,
-spring motion, and a deliberately loud goal-reached moment. Mobile-first,
+spring motion, and a deliberately loud target-reached moment. Mobile-first,
 everyday language; wallet words only appear on the crypto path.
 
 ## Design decisions and trade-offs
 
 - **USDC as the one settlement asset.** The anchor ramps TRY ⇄ USDC, so the
-  pool holds USDC and the goal is in dollars with a ₺ hint. Crypto contributors
+  pool holds USDC and the target is in dollars with a ₺ hint. Crypto contributors
   pay USDC directly; no swaps in the critical path.
 - **Instant accounts instead of mandatory wallets.** A fiat contributor should
   never see the word wallet. The keypair lives in the browser (testnet,
@@ -277,5 +277,5 @@ everyday language; wallet words only appear on the crypto path.
 - Embedded wallet provider (passkeys) in place of the localStorage keypair.
 - Real TRY anchor on mainnet: same code, new home domain and network passphrase.
 - Success fee on funded pools as the business model.
-- Contributor messages and a shareable goal-reached card.
+- Contributor messages and a shareable target-reached card.
 - Next step: SCF application with the mainnet anchor integration.
