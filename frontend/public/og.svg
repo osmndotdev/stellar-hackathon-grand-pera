@@ -5,7 +5,7 @@
   <circle cx="392" cy="182" r="18" fill="#C8FF3D"/>
   <text x="130" y="300" font-family="Helvetica Neue, Arial, sans-serif" font-weight="700" font-size="46" fill="#FFFFFF">Create a payment link in a blink.</text>
   <text x="130" y="360" font-family="Helvetica Neue, Arial, sans-serif" font-size="30" fill="#BDBDB6">Chip in together by bank transfer or crypto.</text>
-  <text x="130" y="404" font-family="Helvetica Neue, Arial, sans-serif" font-size="30" fill="#BDBDB6">Money unlocks only when the goal is reached.</text>
+  <text x="130" y="404" font-family="Helvetica Neue, Arial, sans-serif" font-size="30" fill="#BDBDB6">Money unlocks only when the target is reached.</text>
   <rect x="130" y="460" width="940" height="36" rx="18" fill="#2A2A28"/>
   <rect x="130" y="460" width="705" height="36" rx="18" fill="#C8FF3D"/>
   <text x="1070" y="446" text-anchor="end" font-family="Helvetica Neue, Arial, sans-serif" font-weight="700" font-size="28" fill="#C8FF3D">75%</text>

@@ -74,7 +74,7 @@ const defaultMeta = (url: string) => ({
   title: 'Plink',
   description: 'Create a payment link in a blink. Group funding that unlocks only when the target is reached.',
   url,
-  image: `${PUBLIC_URL}/og.png`,
+  image: `${PUBLIC_URL}/og.png?v=2`,
 })
 
 app.get('/p/:id', async (req, reply) => {
@@ -89,7 +89,7 @@ app.get('/p/:id', async (req, reply) => {
           title: `${p.emoji} ${p.title}`,
           description: `${p.raised} of ${p.target} raised · ${p.status}. ${p.organizer} is collecting on Plink.`,
           url,
-          image: `${PUBLIC_URL}/og.png`,
+          image: `${PUBLIC_URL}/og.png?v=2`,
         }
       }
     } catch (e) {
