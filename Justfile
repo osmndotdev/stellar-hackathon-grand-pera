@@ -4,6 +4,7 @@ network := "testnet"
 deployer := "plink-deployer"
 usdc_sac := "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
 wasm := "target/wasm32v1-none/release/plink.wasm"
+port := "10013"
 
 default:
     @just --list
@@ -40,9 +41,9 @@ invoke *ARGS:
 install:
     pnpm install
 
-# Run the frontend dev server on the portman port
+# Run the frontend dev server on http://localhost:10013
 dev:
-    cd frontend && pnpm dev --port $(portman get plink/frontend) --strictPort
+    cd frontend && pnpm dev --port {{port}} --strictPort
 
 # Typecheck + build frontend and server
 build:
@@ -50,7 +51,7 @@ build:
 
 # Run the production server locally against the built frontend
 serve: build
-    PORT=$(portman get plink/frontend) PUBLIC_URL=http://localhost:$(portman get plink/frontend) node server/dist/index.js
+    PORT={{port}} PUBLIC_URL=http://localhost:{{port}} node server/dist/index.js
 
 # ---------------------------------------------------------------- demo
 

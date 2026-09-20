@@ -140,12 +140,12 @@ SEP protocol exchange with the anchor, and the funding rule.
 ## Run it
 
 Prerequisites: Node 22+, pnpm, Rust with `wasm32v1-none`, `stellar` CLI 28,
-`just`, Docker (for the container build), [`portman`](https://github.com/osmndotdev/portman) for host ports.
+`just`, Docker (for the container build).
 
 ```bash
 just install          # pnpm workspace install
 just test             # contract unit tests
-just dev              # frontend on http://localhost:$(portman get plink/frontend)
+just dev              # frontend on http://localhost:10013
 ```
 
 The app targets the deployed testnet contract in `deployments/testnet.json`;
